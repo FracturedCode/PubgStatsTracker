@@ -11,11 +11,11 @@ namespace PubgStatsTracker
     public class UserConfiguration
     {
         public static UserConfiguration GetConfiguration() =>
-            JsonSerializer.Deserialize<UserConfiguration>(File.ReadAllText(ApplicationSettings.ConfigFile));
+            JsonSerializer.Deserialize<UserConfiguration>(File.ReadAllText(ApplicationState.ConfigFile));
         public void Save() =>
-            JsonSerializer.Serialize(this, new JsonSerializerOptions() { MaxDepth = 3, WriteIndented = true, IgnoreReadOnlyFields = true });
+            File.WriteAllText(ApplicationState.ConfigFile, JsonSerializer.Serialize(this, new JsonSerializerOptions() { MaxDepth = 3, WriteIndented = true, IgnoreReadOnlyFields = true }));
 
         public bool TrackStats { get; set; } = true;
-        public string PubgGameFolder { get; set; } = @"C:\Program Files (x86)\Steam\steamapps\common\PUBG";
+        public string PubgReplayFolder { get; set; } = @"%localappdata%\TslGame\Saved\Demos";   
     }
 }

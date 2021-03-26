@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -11,20 +12,35 @@ namespace PubgStatsTracker
 {
     public class Worker : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        private string replayFolder => ApplicationState.Config.PubgReplayFolder;
+        private ILogger<Worker> logger { get; init; }
+        private FileSystemWatcher pubgReplayWatcher { get; set; }
+        private FileSystemWatcher ipcWatcher { get; set; }
 
         public Worker(ILogger<Worker> logger)
         {
-            _logger = logger;
+            this.logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            await Task.CompletedTask;
+        }
+
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            logger.LogInformation("PubgStatsTracker service starting");
+            if (!Directory.Exists(replayFolder))
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
+                throw new FileNotFoundException("PUBG replay folder could not be found");
             }
+
+            pubgReplayWatcher = new FileSystemWatcher(replayFolder)
+            {
+                NotifyFilter = NotifyFilters.
+            }
+
+            return base.StartAsync(cancellationToken);
         }
     }
 }
