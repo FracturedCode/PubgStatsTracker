@@ -16,6 +16,6 @@ namespace PubgStatsTracker
             File.WriteAllText(ApplicationState.ConfigFile, JsonSerializer.Serialize(this, new JsonSerializerOptions() { MaxDepth = 3, WriteIndented = true, IgnoreReadOnlyFields = true }));
 
         public bool TrackStats { get; set; } = true;
-        public string PubgReplayFolder { get; set; } = @"%localappdata%\TslGame\Saved\Demos";   
+        public string PubgReplayFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"TslGame\Saved\Demos");
     }
 }

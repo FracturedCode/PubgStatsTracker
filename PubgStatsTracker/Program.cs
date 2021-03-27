@@ -17,6 +17,7 @@ namespace PubgStatsTracker
 {
     internal static class Program
     {
+        private static List<Thread> PubgStatsWindows { get; } = new();
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
@@ -43,6 +44,9 @@ namespace PubgStatsTracker
                 .CreateLogger();
 
 
+            string configFileNotFoundMessage = $"Configuration file \"{ApplicationState.ConfigFile}\" cannot be found";
+
+
             try
             {
                 if (ApplicationState.IsServiceRunning)
@@ -58,10 +62,20 @@ namespace PubgStatsTracker
                 }
                 else if (runService)
                 {
+                    if (ApplicationState.Config is null)
+                    {
+                        throw new FileNotFoundException(configFileNotFoundMessage);
+                    }
                     startService();
                 }
                 else
                 {
+                    if (ApplicationState.Config is null)
+                    {
+                        Log.Information(configFileNotFoundMessage);
+                        MessageBox.Show(configFileNotFoundMessage);
+                    }
+                    
                     openStandaloneGui();
                 }
             } catch (Exception e)
@@ -76,6 +90,14 @@ namespace PubgStatsTracker
             
         private static void ipcOpenGui() =>
             File.WriteAllText(ApplicationState.IpcFile, "open");
+
+        public static void StartNewStatsWindow()
+        {
+            Thread newWindowThread = new(openStandaloneGui);
+            PubgStatsWindows.RemoveAll(t => t.ThreadState == ThreadState.Stopped);
+            PubgStatsWindows.Add(newWindowThread);
+            newWindowThread.Start();
+        }
 
         private static void startService() =>
             Host.CreateDefaultBuilder()

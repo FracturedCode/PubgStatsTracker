@@ -14,6 +14,7 @@ namespace PubgStatsTracker
         public static readonly string ConfigFile = "PubgStatsTrackerConfig.json";
         public static readonly string ServiceName = "PubgStatsTrackerService";
         public static readonly string IpcFile = "PubgStatsTracker.ipc";
+        public static readonly string DefaultExceptionMessage = "I think the programmer messed up";
         static ApplicationState()
         {
             try
@@ -21,9 +22,7 @@ namespace PubgStatsTracker
                 Config = UserConfiguration.GetConfiguration();
             } catch (FileNotFoundException)
             {
-                MessageBox.Show($"Configuration file \"{ConfigFile}\" cannot be found; generating new.");
-                Config = new UserConfiguration();
-                Config.Save();
+                Config = null;
             }
         }
         public static UserConfiguration Config { get; set; }
