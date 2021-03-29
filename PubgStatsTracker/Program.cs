@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
+using System.Diagnostics;
 
 namespace PubgStatsTracker
 {
@@ -28,7 +29,7 @@ namespace PubgStatsTracker
 
             var options = new OptionSet
             {
-                { "s|service", "run the service and not the application", r => runService = r != null }
+                { "s|service", "run the service and not the gui", r => runService = r != null }
             };
 
             options.Parse(args);
@@ -44,12 +45,12 @@ namespace PubgStatsTracker
                 .CreateLogger();
 
 
-            string configFileNotFoundMessage = $"Configuration file \"{ApplicationState.ConfigFile}\" cannot be found";
+            string configFileNotFoundMessage = $"Configuration file \"{AppConfig.ConfigFile}\" cannot be found";
 
 
             try
             {
-                if (ApplicationState.IsServiceRunning)
+                if (AppConfig.IsServiceRunning)
                 {
                     if (runService)
                     {
@@ -62,7 +63,7 @@ namespace PubgStatsTracker
                 }
                 else if (runService)
                 {
-                    if (ApplicationState.Config is null)
+                    if (!AppConfig.DoesServiceExist)
                     {
                         throw new FileNotFoundException(configFileNotFoundMessage);
                     }
@@ -70,12 +71,6 @@ namespace PubgStatsTracker
                 }
                 else
                 {
-                    if (ApplicationState.Config is null)
-                    {
-                        Log.Information(configFileNotFoundMessage);
-                        MessageBox.Show(configFileNotFoundMessage);
-                    }
-                    
                     openStandaloneGui();
                 }
             } catch (Exception e)
@@ -87,14 +82,21 @@ namespace PubgStatsTracker
             }
             
         }
-            
+
+        internal static void RestartElevated()
+        {
+            ProcessStartInfo psi = new(AppConfig.ExePath) { UseShellExecute = true, Verb = "runas" };
+            Process.Start(psi);
+            Application.Exit();
+        }
+
         private static void ipcOpenGui() =>
-            File.WriteAllText(ApplicationState.IpcFile, "open");
+            File.WriteAllText(AppConfig.IpcFile, AppConfig.IpcOpen);
 
         public static void StartNewStatsWindow()
         {
             Thread newWindowThread = new(openStandaloneGui);
-            PubgStatsWindows.RemoveAll(t => t.ThreadState == ThreadState.Stopped);
+            PubgStatsWindows.RemoveAll(t => t.ThreadState == System.Threading.ThreadState.Stopped);
             PubgStatsWindows.Add(newWindowThread);
             newWindowThread.Start();
         }
@@ -113,6 +115,24 @@ namespace PubgStatsTracker
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new PubgStatsTracker());
+        }
+
+        public static void Install()
+        {
+            new InstallForm().ShowDialog();
+            if (AppConfig.DoesServiceExist)
+            {
+                ipcOpenGui();
+                Application.Exit();
+            }
+        }
+
+        public static void Uninstall()
+        {
+            if (MessageBox.Show("Uninstall PubgStatsTracker?") == DialogResult.OK)
+            {
+
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ namespace PubgStatsTracker
 {
     public class Worker : BackgroundService
     {
-        private string replayFolder => ApplicationState.Config.PubgReplayFolder;
+        private string replayFolder => AppConfig.Config.PubgReplayFolder;
         private ILogger<Worker> logger { get; init; }
         private FileSystemWatcher pubgReplayWatcher { get; set; }
         private FileSystemWatcher ipcWatcher { get; set; }
@@ -44,7 +44,7 @@ namespace PubgStatsTracker
             pubgReplayWatcher.Created += onNewReplay;
             pubgReplayWatcher.EnableRaisingEvents = true;
 
-            ipcWatcher = new FileSystemWatcher(AppDomain.CurrentDomain.BaseDirectory, ApplicationState.IpcFile)
+            ipcWatcher = new FileSystemWatcher(AppDomain.CurrentDomain.BaseDirectory, AppConfig.IpcFile)
             {
                 NotifyFilter = NotifyFilters.LastWrite
             };
@@ -76,21 +76,21 @@ namespace PubgStatsTracker
             if (e.ChangeType == WatcherChangeTypes.Created)
                 addIfNewReplay(e.FullPath);
             else
-                throw new Exception(ApplicationState.DefaultExceptionMessage);
+                throw new Exception(AppConfig.DefaultExceptionMessage);
         }
 
         private void onIpc(object sender, FileSystemEventArgs e)
         {
             if (e.ChangeType == WatcherChangeTypes.Changed)
             {
-                string ipcFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ApplicationState.IpcFile);
-                if (File.ReadAllText(ipcFile)=="open")
+                string ipcFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, AppConfig.IpcFile);
+                if (File.ReadAllText(ipcFile)==AppConfig.IpcOpen)
                 {
                     Program.StartNewStatsWindow();
                 }
             } else
             {
-                throw new Exception(ApplicationState.DefaultExceptionMessage);
+                throw new Exception(AppConfig.DefaultExceptionMessage);
             }
         }
 
