@@ -38,15 +38,19 @@ namespace PubgStatsTracker
 
         private void installButton_Click(object sender, EventArgs e)
         {
-            if (AppConfig.DoesServiceExist)
+            const string adminMessage = "The program must be started with admin privileges to (un)install. Click OK to relaunch with admin privileges";
+            if (AppConfig.IsElevated)
             {
-                Program.Uninstall();
+                if (AppConfig.DoesServiceExist)
+                {
+                    Program.Uninstall();
+                }
+                else
+                {
+                    Program.Install();
+                }
             }
-            else if (AppConfig.IsElevated)
-            {
-                Program.Install();
-            }
-            else if (MessageBox.Show("The program must be started with admin privileges to install. Click OK to relaunch with admin privileges", "Run as admin?", MessageBoxButtons.OKCancel) == DialogResult.OK)
+            else if (MessageBox.Show(adminMessage, "Run as admin?", MessageBoxButtons.OKCancel) == DialogResult.OK)
             {
                 Program.RestartElevated();
             }

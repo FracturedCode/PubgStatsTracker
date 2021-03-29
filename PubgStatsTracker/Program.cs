@@ -129,9 +129,10 @@ namespace PubgStatsTracker
 
         public static void Uninstall()
         {
-            if (MessageBox.Show("Uninstall PubgStatsTracker?") == DialogResult.OK)
+            new UninstallForm().ShowDialog();
+            if (AppConfig.DoesServiceExist)
             {
-
+                
             }
         }
     }
