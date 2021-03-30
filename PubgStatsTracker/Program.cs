@@ -13,6 +13,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Diagnostics;
+using IWshRuntimeLibrary;
 
 namespace PubgStatsTracker
 {
@@ -114,26 +115,84 @@ namespace PubgStatsTracker
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new PubgStatsTracker());
+            Application.Run(new PubgStatsTrackerForm());
         }
 
-        public static void Install()
+        public static void Install(InstallModel installModel)
         {
-            new InstallForm().ShowDialog();
-            if (AppConfig.DoesServiceExist)
+            string exeName = AppConfig.DefaultName + ".exe";
+            string installExe = Path.Combine(installModel.InstallLocation, exeName);
+
+            System.IO.File.Copy(
+                AppConfig.ExePath,
+                installExe
+            );
+
+            new UserConfiguration().Save(installModel.InstallLocation);
+
+            if (installModel.CreateDesktopShortcut)
             {
-                ipcOpenGui();
-                Application.Exit();
+                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), AppConfig.DefaultName + ".url");
+                using StreamWriter writer = new(shortcutPath);
+                writer.WriteLine("[InternetShortcut]");
+                writer.WriteLine("URL=file:///" + installExe);
+                writer.WriteLine("IconIndex=0");
+                writer.WriteLine("IconFile=" + installExe.Replace('\\', '/'));
             }
+
+            if (installModel.CreateStartMenuShortcut)
+            {
+                WshShellClass shellClass = new();
+                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), AppConfig.DefaultName + ".lnk");
+                IWshShortcut shortcut = (IWshShortcut)shellClass.CreateShortcut(shortcutPath);
+                shortcut.TargetPath = installExe;
+                shortcut.IconLocation = installExe.Replace('\\', '/');
+                shortcut.Save();
+            }
+
+            if (!AppConfig.DoesServiceExist)
+            {
+                ProcessStartInfo serviceCreator = new("sc.exe", $"create {AppConfig.ServiceName} start= delayed-auto displayName= \"{AppConfig.ServiceName}\" binpath= \"{installExe} -s\"");
+                Process.Start(serviceCreator);
+                ProcessStartInfo startService = new("sc.exe", $"start {AppConfig.ServiceName}");
+                Process.Start(startService);
+            }
+            
+            while(!AppConfig.DoesServiceExist)
+            {
+                Thread.Sleep(100);
+            }
+            ipcOpenGui();
+            Application.Exit();
         }
 
-        public static void Uninstall()
+        public static void Uninstall(UninstallModel uninstallModel)
         {
-            new UninstallForm().ShowDialog();
-            if (AppConfig.DoesServiceExist)
+            string deleteLogsCmd = "rmdir /s logs";
+            string deleteConfigCmd = $"del {AppConfig.ConfigFile}";
+            string deleteHistoryCmd = $""; //TODO
+            List<string> arguments = new(){ "/c ping localhost -n 3 > nul", $"cd {AppDomain.CurrentDomain.BaseDirectory}" };
+            if (uninstallModel.DeleteLogs)
+                arguments.Add(deleteLogsCmd);
+            if (uninstallModel.DeleteConfig)
+                arguments.Add(deleteConfigCmd);
+            //if (uninstallModel.DeleteMatchHistory)
+            // arguments.
+            // TODO shortcuts
+            // TODO service
+            arguments.Add($"del {AppConfig.DefaultName}.exe");
+            string concatdArguments = arguments.Aggregate((x, y) => $"{x} & {y}");
+
+            ProcessStartInfo psi = new()
             {
-                
-            }
+                UseShellExecute = true,
+                Verb = "runas",
+                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = "cmd.exe",
+                Arguments = concatdArguments
+            };
+            Process.Start(psi);
+            Application.Exit();
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 namespace PubgStatsTracker
 {
-    partial class PubgStatsTracker
+    partial class PubgStatsTrackerForm
     {
         /// <summary>
         ///  Required designer variable.

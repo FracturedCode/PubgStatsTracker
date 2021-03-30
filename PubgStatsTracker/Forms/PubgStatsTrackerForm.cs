@@ -13,9 +13,9 @@ using System.Windows.Forms;
 
 namespace PubgStatsTracker
 {
-    public partial class PubgStatsTracker : Form
+    public partial class PubgStatsTrackerForm : Form
     {
-        public PubgStatsTracker()
+        public PubgStatsTrackerForm()
         {
             InitializeComponent();
             installButton.Text = AppConfig.Config.Installed ? "Uninstall" : "Install";
@@ -43,11 +43,11 @@ namespace PubgStatsTracker
             {
                 if (AppConfig.DoesServiceExist)
                 {
-                    Program.Uninstall();
+                    new UninstallForm().ShowDialog();
                 }
                 else
                 {
-                    Program.Install();
+                    new InstallForm().ShowDialog();
                 }
             }
             else if (MessageBox.Show(adminMessage, "Run as admin?", MessageBoxButtons.OKCancel) == DialogResult.OK)
