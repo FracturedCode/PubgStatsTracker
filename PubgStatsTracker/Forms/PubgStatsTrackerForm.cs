@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MaterialSkin;
+using MaterialSkin.Controls;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,11 +15,13 @@ using System.Windows.Forms;
 
 namespace PubgStatsTracker
 {
-    public partial class PubgStatsTrackerForm : Form
+    public partial class PubgStatsTrackerForm : MaterialForm
     {
         public PubgStatsTrackerForm()
         {
+            MaterialSkinManager.Instance.AddFormToManage(this);
             InitializeComponent();
+            
             installButton.Text = AppState.DoesServiceExist ? "Uninstall" : "Install";
             if (!AppState.IsElevated)
             {

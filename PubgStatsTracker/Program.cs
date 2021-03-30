@@ -13,6 +13,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Diagnostics;
+using MaterialSkin;
 
 namespace PubgStatsTracker
 {
@@ -71,7 +72,7 @@ namespace PubgStatsTracker
                 }
             } catch (Exception e)
             {
-                Log.Fatal(e, "Unexpected exception thrown");
+                Log.Fatal(e, "Unexpected exception thrown" + exceptionLocationInfo(e));
             } finally
             {
                 Log.CloseAndFlush();
@@ -89,12 +90,34 @@ namespace PubgStatsTracker
                 .Build()
                 .Run();
 
+        private static string exceptionLocationInfo(Exception e)
+        {
+            StackFrame frame = new StackTrace(e, true).GetFrame(0);
+            string fileName = frame.GetFileName();
+            int line = frame.GetFileLineNumber();
+
+            return $"An exception occurred: from line {line} in file {fileName}";
+        }
+
         private static void openStandaloneGui()
         {
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new PubgStatsTrackerForm());
+            try
+            {
+                var materialSkinManager = MaterialSkinManager.Instance;
+                materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
+                materialSkinManager.ColorScheme = new ColorScheme(Primary.Pink800, Primary.BlueGrey900, Primary.BlueGrey500, Accent.LightBlue200, TextShade.WHITE);
+
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new PubgStatsTrackerForm());
+            }
+            catch (Exception e)
+            {
+                string fancyExceptionMessage = exceptionLocationInfo(e);
+                MessageBox.Show(fancyExceptionMessage);
+                Log.Warning(e, fancyExceptionMessage);
+            }
         }
 
         public static void StartNewStatsWindow()

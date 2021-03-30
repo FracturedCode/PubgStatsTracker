@@ -29,19 +29,8 @@ namespace PubgStatsTracker
         /// </summary>
         private void InitializeComponent()
         {
-            this.trackStatsCheckbox = new System.Windows.Forms.CheckBox();
             this.installButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
-            // 
-            // trackStatsCheckbox
-            // 
-            this.trackStatsCheckbox.AutoSize = true;
-            this.trackStatsCheckbox.Location = new System.Drawing.Point(13, 13);
-            this.trackStatsCheckbox.Name = "trackStatsCheckbox";
-            this.trackStatsCheckbox.Size = new System.Drawing.Size(101, 19);
-            this.trackStatsCheckbox.TabIndex = 0;
-            this.trackStatsCheckbox.Text = "Track My Stats";
-            this.trackStatsCheckbox.UseVisualStyleBackColor = true;
             // 
             // installButton
             // 
@@ -54,23 +43,19 @@ namespace PubgStatsTracker
             this.installButton.UseVisualStyleBackColor = true;
             this.installButton.Click += new System.EventHandler(this.installButton_Click);
             // 
-            // PubgStatsTracker
+            // PubgStatsTrackerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.installButton);
-            this.Controls.Add(this.trackStatsCheckbox);
-            this.Name = "PubgStatsTracker";
+            this.Name = "PubgStatsTrackerForm";
             this.Text = "PubgStatsTracker";
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.CheckBox trackStatsCheckbox;
         private System.Windows.Forms.Button installButton;
     }
 }
