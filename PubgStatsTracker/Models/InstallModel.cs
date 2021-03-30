@@ -11,6 +11,6 @@ namespace PubgStatsTracker
     {
         public bool CreateStartMenuShortcut { get; set; } = true;
         public bool CreateDesktopShortcut { get; set; } = false;
-        public string InstallLocation { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppConfig.DefaultName);
+        public string InstallLocation { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Constants.DefaultName);
     }
 }

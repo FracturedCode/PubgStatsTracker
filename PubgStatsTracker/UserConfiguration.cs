@@ -11,10 +11,10 @@ namespace PubgStatsTracker
     public class UserConfiguration
     {
         public static UserConfiguration GetConfiguration() =>
-            JsonSerializer.Deserialize<UserConfiguration>(File.ReadAllText(AppConfig.ConfigFile));
+            JsonSerializer.Deserialize<UserConfiguration>(File.ReadAllText(Constants.CompletePaths.ConfigFile));
         public void Save(string saveLocation = "") =>
             File.WriteAllText(
-                Path.Combine(saveLocation, AppConfig.ConfigFile),
+                Path.Combine(saveLocation, Constants.Files.ConfigFile),
                 JsonSerializer.Serialize(this,
                     new JsonSerializerOptions()
                     { MaxDepth = 3, WriteIndented = true, IgnoreReadOnlyFields = true }
@@ -23,6 +23,5 @@ namespace PubgStatsTracker
 
         public bool TrackStats { get; set; } = false;
         public string PubgReplayFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"TslGame\Saved\Demos");
-        public bool Installed { get; internal set; } = false;
     }
 }

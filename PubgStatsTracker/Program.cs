@@ -13,7 +13,6 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Diagnostics;
-using IWshRuntimeLibrary;
 
 namespace PubgStatsTracker
 {
@@ -37,21 +36,17 @@ namespace PubgStatsTracker
 
 
             const string loggerTemplate = @"{Timestamp:yyyy-MM-dd HH:mm:ss} [{SourceContext:1}] {Message:lj}{NewLine}{Exception}";
-            var logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "PubgStatsTracker.log");
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .WriteTo.Console(LogEventLevel.Information, loggerTemplate, theme: AnsiConsoleTheme.Literate)
-                .WriteTo.File(logFile, rollingInterval: RollingInterval.Month)
+                .WriteTo.File(Constants.CompletePaths.DefaultLogFile, rollingInterval: RollingInterval.Month)
                 .CreateLogger();
-
-
-            string configFileNotFoundMessage = $"Configuration file \"{AppConfig.ConfigFile}\" cannot be found";
 
 
             try
             {
-                if (AppConfig.IsServiceRunning)
+                if (AppState.IsServiceRunning)
                 {
                     if (runService)
                     {
@@ -64,9 +59,9 @@ namespace PubgStatsTracker
                 }
                 else if (runService)
                 {
-                    if (!AppConfig.DoesServiceExist)
+                    if (!AppState.DoesServiceExist)
                     {
-                        throw new FileNotFoundException(configFileNotFoundMessage);
+                        throw new Exception($"The {Constants.ServiceName} does not exist");
                     }
                     startService();
                 }
@@ -81,26 +76,10 @@ namespace PubgStatsTracker
             {
                 Log.CloseAndFlush();
             }
-            
-        }
-
-        internal static void RestartElevated()
-        {
-            ProcessStartInfo psi = new(AppConfig.ExePath) { UseShellExecute = true, Verb = "runas" };
-            Process.Start(psi);
-            Application.Exit();
         }
 
         private static void ipcOpenGui() =>
-            File.WriteAllText(AppConfig.IpcFile, AppConfig.IpcOpen);
-
-        public static void StartNewStatsWindow()
-        {
-            Thread newWindowThread = new(openStandaloneGui);
-            PubgStatsWindows.RemoveAll(t => t.ThreadState == System.Threading.ThreadState.Stopped);
-            PubgStatsWindows.Add(newWindowThread);
-            newWindowThread.Start();
-        }
+            File.WriteAllText(Constants.CompletePaths.IpcFile, Constants.Ipc.IpcOpen);
 
         private static void startService() =>
             Host.CreateDefaultBuilder()
@@ -118,13 +97,27 @@ namespace PubgStatsTracker
             Application.Run(new PubgStatsTrackerForm());
         }
 
+        public static void StartNewStatsWindow()
+        {
+            Thread newWindowThread = new(openStandaloneGui);
+            PubgStatsWindows.RemoveAll(t => t.ThreadState == System.Threading.ThreadState.Stopped);
+            PubgStatsWindows.Add(newWindowThread);
+            newWindowThread.Start();
+        }
+
+        internal static void RestartElevated()
+        {
+            ProcessStartInfo psi = new(Constants.CompletePaths.ExePath) { UseShellExecute = true, Verb = "runas" };
+            Process.Start(psi);
+            Application.Exit();
+        }
+
         public static void Install(InstallModel installModel)
         {
-            string exeName = AppConfig.DefaultName + ".exe";
-            string installExe = Path.Combine(installModel.InstallLocation, exeName);
+            string installExe = Path.Combine(installModel.InstallLocation, Constants.Files.ExeName);
 
-            System.IO.File.Copy(
-                AppConfig.ExePath,
+            File.Copy(
+                Constants.CompletePaths.ExePath,
                 installExe
             );
 
@@ -132,7 +125,7 @@ namespace PubgStatsTracker
 
             if (installModel.CreateDesktopShortcut)
             {
-                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), AppConfig.DefaultName + ".url");
+                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), Constants.DefaultName + ".url");
                 using StreamWriter writer = new(shortcutPath);
                 writer.WriteLine("[InternetShortcut]");
                 writer.WriteLine("URL=file:///" + installExe);
@@ -142,36 +135,36 @@ namespace PubgStatsTracker
 
             if (installModel.CreateStartMenuShortcut)
             {
-                WshShellClass shellClass = new();
-                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), AppConfig.DefaultName + ".lnk");
-                IWshShortcut shortcut = (IWshShortcut)shellClass.CreateShortcut(shortcutPath);
+                IWshRuntimeLibrary.WshShellClass shellClass = new();
+                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), Constants.DefaultName + ".lnk");
+                IWshRuntimeLibrary.IWshShortcut shortcut = (IWshRuntimeLibrary.IWshShortcut)shellClass.CreateShortcut(shortcutPath);
                 shortcut.TargetPath = installExe;
                 shortcut.IconLocation = installExe.Replace('\\', '/');
                 shortcut.Save();
             }
 
-            if (!AppConfig.DoesServiceExist)
+            if (!AppState.DoesServiceExist)
             {
-                ProcessStartInfo serviceCreator = new("sc.exe", $"create {AppConfig.ServiceName} start= delayed-auto displayName= \"{AppConfig.ServiceName}\" binpath= \"{installExe} -s\"");
+                ProcessStartInfo serviceCreator = new("sc.exe", $"create {Constants.ServiceName} start= delayed-auto displayName= \"{Constants.ServiceName}\" binpath= \"{installExe} -s\"");
                 Process.Start(serviceCreator);
-                ProcessStartInfo startService = new("sc.exe", $"start {AppConfig.ServiceName}");
+                ProcessStartInfo startService = new("sc.exe", $"start {Constants.ServiceName}");
                 Process.Start(startService);
             }
             
-            while(!AppConfig.DoesServiceExist)
+            while(!AppState.DoesServiceExist || !AppState.IsServiceRunning)
             {
                 Thread.Sleep(100);
             }
-            ipcOpenGui();
+            File.WriteAllText(Path.Combine(installModel.InstallLocation, Constants.Ipc.IpcFile), Constants.Ipc.IpcOpen);
             Application.Exit();
         }
 
         public static void Uninstall(UninstallModel uninstallModel)
         {
             string deleteLogsCmd = "rmdir /s logs";
-            string deleteConfigCmd = $"del {AppConfig.ConfigFile}";
+            string deleteConfigCmd = $"del {Constants.Files.ConfigFile}";
             string deleteHistoryCmd = $""; //TODO
-            List<string> arguments = new(){ "/c ping localhost -n 3 > nul", $"cd {AppDomain.CurrentDomain.BaseDirectory}" };
+            List<string> arguments = new(){ "/c ping localhost -n 3 > nul", $"cd {Constants.BaseDirectory}" };
             if (uninstallModel.DeleteLogs)
                 arguments.Add(deleteLogsCmd);
             if (uninstallModel.DeleteConfig)
@@ -180,7 +173,7 @@ namespace PubgStatsTracker
             // arguments.
             // TODO shortcuts
             // TODO service
-            arguments.Add($"del {AppConfig.DefaultName}.exe");
+            arguments.Add($"del {Constants.DefaultName}.exe");
             string concatdArguments = arguments.Aggregate((x, y) => $"{x} & {y}");
 
             ProcessStartInfo psi = new()

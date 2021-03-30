@@ -18,8 +18,8 @@ namespace PubgStatsTracker
         public PubgStatsTrackerForm()
         {
             InitializeComponent();
-            installButton.Text = AppConfig.Config.Installed ? "Uninstall" : "Install";
-            if (!AppConfig.IsElevated)
+            installButton.Text = AppState.DoesServiceExist ? "Uninstall" : "Install";
+            if (!AppState.IsElevated)
             {
                 SetButtonShield(installButton, true);
             }
@@ -39,9 +39,9 @@ namespace PubgStatsTracker
         private void installButton_Click(object sender, EventArgs e)
         {
             const string adminMessage = "The program must be started with admin privileges to (un)install. Click OK to relaunch with admin privileges";
-            if (AppConfig.IsElevated)
+            if (AppState.IsElevated)
             {
-                if (AppConfig.DoesServiceExist)
+                if (AppState.DoesServiceExist)
                 {
                     new UninstallForm().ShowDialog();
                 }

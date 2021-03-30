@@ -10,15 +10,10 @@ using System.Windows.Forms;
 
 namespace PubgStatsTracker
 {
-    internal static class AppConfig
+    internal static class AppState
     {
-        public static readonly string DefaultName = "PubgStatsTracker";
-        public static readonly string ConfigFile = DefaultName + "Config.json";
-        public static readonly string ServiceName = DefaultName + "Service";
-        public static readonly string IpcFile = DefaultName + ".ipc";
-        public static readonly string DefaultExceptionMessage = "I think the programmer messed up";
-        public static readonly string IpcOpen = "open";
-        static AppConfig()
+        
+        static AppState()
         {
             try
             {
@@ -33,14 +28,14 @@ namespace PubgStatsTracker
             new WindowsPrincipal(WindowsIdentity.GetCurrent())
                 .IsInRole(WindowsBuiltInRole.Administrator);
         public static bool IsServiceRunning =>
-            DoesServiceExist && new ServiceController(ServiceName).Status == ServiceControllerStatus.Running;
+            DoesServiceExist && new ServiceController(Constants.ServiceName).Status == ServiceControllerStatus.Running;
         public static bool DoesServiceExist
         {
             get
             {
                 try
                 {
-                    _ = new ServiceController(ServiceName).Status;
+                    _ = new ServiceController(Constants.ServiceName).Status;
                     return true;
                 } catch (InvalidOperationException)
                 {
@@ -48,6 +43,5 @@ namespace PubgStatsTracker
                 }
             }
         }
-        public static string ExePath => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, DefaultName + ".exe");
     }
 }

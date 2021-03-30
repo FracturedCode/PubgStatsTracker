@@ -32,7 +32,7 @@ namespace PubgStatsTracker
             folderBrowser.ShowNewFolderButton = true;
             if (folderBrowser.ShowDialog(this) == DialogResult.OK)
             {
-                installLocationTextbox.Text = Path.Combine(folderBrowser.SelectedPath, AppConfig.DefaultName);
+                installLocationTextbox.Text = Path.Combine(folderBrowser.SelectedPath, Constants.DefaultName);
             }
         }
 
