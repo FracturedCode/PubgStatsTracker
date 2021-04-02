@@ -14,7 +14,7 @@ namespace PubgStatsTracker
             JsonSerializer.Deserialize<UserConfiguration>(File.ReadAllText(Constants.CompletePaths.ConfigFile));
         public void Save(string saveLocation = "") =>
             File.WriteAllText(
-                Path.Combine(saveLocation, Constants.Files.ConfigFile),
+                Path.Combine(saveLocation, Constants.Files.Config),
                 JsonSerializer.Serialize(this,
                     new JsonSerializerOptions()
                     { MaxDepth = 3, WriteIndented = true, IgnoreReadOnlyFields = true }

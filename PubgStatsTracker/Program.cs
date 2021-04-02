@@ -14,6 +14,8 @@ using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Diagnostics;
 using MaterialSkin;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace PubgStatsTracker
 {
@@ -43,7 +45,6 @@ namespace PubgStatsTracker
                 .WriteTo.Console(LogEventLevel.Information, loggerTemplate, theme: AnsiConsoleTheme.Literate)
                 .WriteTo.File(Constants.CompletePaths.DefaultLogFile, rollingInterval: RollingInterval.Month)
                 .CreateLogger();
-
 
             try
             {
@@ -85,7 +86,12 @@ namespace PubgStatsTracker
         private static void startService() =>
             Host.CreateDefaultBuilder()
                 .UseWindowsService()
-                .ConfigureServices((_, services) => services.AddHostedService<Worker>())
+                .ConfigureServices((_, services) =>
+                {
+                    services.AddHostedService<Worker>();
+                    services.AddDbContext<MatchHistoryContext>(options
+                        => options.UseSqlite($"Data Source={Constants.CompletePaths.DatabaseFile}"));
+                })
                 .UseSerilog()
                 .Build()
                 .Run();
@@ -139,13 +145,27 @@ namespace PubgStatsTracker
         {
             string installExe = Path.Combine(installModel.InstallLocation, Constants.Files.ExeName);
 
+            // Copy exe
             File.Copy(
                 Constants.CompletePaths.ExePath,
                 installExe
             );
 
+            // Write user config
             new UserConfiguration().Save(installModel.InstallLocation);
 
+            // Copy database
+            File.WriteAllText(
+                Constants.CompletePaths.DatabaseFile,
+                new StreamReader(
+                    Assembly
+                        .GetExecutingAssembly()
+                        .GetManifestResourceStream(Constants.Files.DefaultDatabaseEmbedded)
+                )
+                .ReadToEnd()
+            );
+
+            // Create desktop shortcut
             if (installModel.CreateDesktopShortcut)
             {
                 string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), Constants.DefaultName + ".url");
@@ -156,6 +176,7 @@ namespace PubgStatsTracker
                 writer.WriteLine("IconFile=" + installExe.Replace('\\', '/'));
             }
 
+            // Create start menu shortcut
             if (installModel.CreateStartMenuShortcut)
             {
                 IWshRuntimeLibrary.WshShellClass shellClass = new();
@@ -166,6 +187,7 @@ namespace PubgStatsTracker
                 shortcut.Save();
             }
 
+            // create and start windows service
             if (!AppState.DoesServiceExist)
             {
                 ProcessStartInfo serviceCreator = new("sc.exe", $"create {Constants.ServiceName} start= delayed-auto displayName= \"{Constants.ServiceName}\" binpath= \"{installExe} -s\"");
@@ -178,6 +200,8 @@ namespace PubgStatsTracker
             {
                 Thread.Sleep(100);
             }
+
+            // IPC to service to start new window
             File.WriteAllText(Path.Combine(installModel.InstallLocation, Constants.Ipc.IpcFile), Constants.Ipc.IpcOpen);
             Application.Exit();
         }
@@ -185,7 +209,7 @@ namespace PubgStatsTracker
         public static void Uninstall(UninstallModel uninstallModel)
         {
             string deleteLogsCmd = "rmdir /s logs";
-            string deleteConfigCmd = $"del {Constants.Files.ConfigFile}";
+            string deleteConfigCmd = $"del {Constants.Files.Config}";
             string deleteHistoryCmd = $""; //TODO
             List<string> arguments = new(){ "/c ping localhost -n 3 > nul", $"cd {Constants.BaseDirectory}" };
             if (uninstallModel.DeleteLogs)

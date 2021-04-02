@@ -83,7 +83,7 @@ namespace PubgStatsTracker
         {
             if (e.ChangeType == WatcherChangeTypes.Changed)
             {
-                if (File.ReadAllText(Constants.Files.IpcFile)==Constants.Ipc.IpcOpen)
+                if (File.ReadAllText(Constants.Files.Ipc)==Constants.Ipc.IpcOpen)
                 {
                     Program.StartNewStatsWindow();
                 }
