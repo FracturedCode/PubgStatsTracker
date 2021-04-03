@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\MatchHistoryDefault.db" />
-  </ItemGroup>
-
-  <ItemGroup>
     <COMReference Include="IWshRuntimeLibrary.dll">
       <WrapperTool>tlbimp</WrapperTool>
       <VersionMinor>0</VersionMinor>
@@ -19,10 +15,6 @@
       <Lcid>0</Lcid>
       <Isolated>false</Isolated>
     </COMReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\MatchHistoryDefault.db" />
   </ItemGroup>
 
   <ItemGroup>

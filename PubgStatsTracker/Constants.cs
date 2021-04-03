@@ -14,7 +14,8 @@ namespace PubgStatsTracker
         public static string BaseDirectory => CompletePaths.BaseDirectory;
         public static string DefaultExceptionMessage => "I think the programmer messed up";
 
-        // We use complete paths for most things that read/write in the system because a service can have a "cd" of system32. Thus, BaseDirectory is used often
+        // We use complete paths for most things that read/write in the system because a service can have a "cd" of system32.
+        // Thus, BaseDirectory is needed to distignuish between the executable location and system32
         public static class CompletePaths
         {
             public static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
@@ -28,6 +29,7 @@ namespace PubgStatsTracker
 
         public static class Files
         {
+            public static string ReplayInfo => "PUBG.replayinfo";
             public static string Database => "MatchHistory.db";
             public static string Log => DefaultName + ".log";
             public static string Ipc => Constants.Ipc.IpcFile;

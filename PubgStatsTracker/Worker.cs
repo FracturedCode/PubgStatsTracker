@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PubgStatsTracker.BusinessLogic;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -74,7 +75,7 @@ namespace PubgStatsTracker
         private void onNewReplay(object sender, FileSystemEventArgs e)
         {
             if (e.ChangeType == WatcherChangeTypes.Created)
-                addIfNewReplay(e.FullPath);
+                DataManager.AddIfNewReplay(e.FullPath[..e.FullPath.LastIndexOf('\\')]);
             else
                 throw new Exception(Constants.DefaultExceptionMessage);
         }
@@ -91,11 +92,6 @@ namespace PubgStatsTracker
             {
                 throw new Exception(Constants.DefaultExceptionMessage);
             }
-        }
-
-        private void addIfNewReplay(string fullPath)
-        {
-            //throw new NotImplementedException();
         }
     }
 }

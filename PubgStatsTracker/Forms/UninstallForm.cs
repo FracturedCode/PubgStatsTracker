@@ -25,7 +25,7 @@ namespace PubgStatsTracker
 
         private void uninstallButton_Click(object sender, EventArgs e)
         {
-            Program.Uninstall(uninstallModel);
+            Installer.Uninstall(uninstallModel);
         }
     }
 }

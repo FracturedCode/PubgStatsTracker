@@ -1,5 +1,6 @@
 ﻿using MaterialSkin;
 using MaterialSkin.Controls;
+using PubgStatsTracker.BusinessLogic;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -56,7 +57,7 @@ namespace PubgStatsTracker
             }
             else if (MessageBox.Show(adminMessage, "Run as admin?", MessageBoxButtons.OKCancel) == DialogResult.OK)
             {
-                Program.RestartElevated();
+                Installer.RestartElevated();
             }
         }
     }

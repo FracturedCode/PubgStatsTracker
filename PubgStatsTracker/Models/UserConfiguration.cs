@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.Json;
 
-namespace PubgStatsTracker
+namespace PubgStatsTracker.Models
 {
     public class UserConfiguration
     {

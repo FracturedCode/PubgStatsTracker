@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using IWshRuntimeLibrary;
+using MaterialSkin.Controls;
+using PubgStatsTracker.Models;
 
 namespace PubgStatsTracker
 {
@@ -38,7 +40,7 @@ namespace PubgStatsTracker
 
         private void installButton_Click(object sender, EventArgs e)
         {
-            Program.Install(installModel);
+            Installer.Install(installModel);
         }
     }
 }
