@@ -1,4 +1,5 @@
-﻿using PubgStatsTracker.Models.Replay;
+﻿using PubgStatsTracker.BusinessLogic;
+using PubgStatsTracker.Models.Replay;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

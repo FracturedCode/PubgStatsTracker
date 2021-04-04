@@ -30,6 +30,8 @@ namespace PubgStatsTracker
                 .IsInRole(WindowsBuiltInRole.Administrator);
         public static bool IsServiceRunning =>
             DoesServiceExist && new ServiceController(Constants.ServiceName).Status == ServiceControllerStatus.Running;
+        public static string PubgReplayFolder
+            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"TslGame\Saved\Demos");
         public static bool DoesServiceExist
         {
             get

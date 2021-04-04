@@ -22,6 +22,5 @@ namespace PubgStatsTracker.Models
             );
 
         public bool TrackStats { get; set; } = false;
-        public string PubgReplayFolder { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"TslGame\Saved\Demos");
     }
 }
