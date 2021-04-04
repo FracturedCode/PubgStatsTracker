@@ -9,6 +9,9 @@ namespace PubgStatsTracker
 {
     public static class Constants
     {
+        private static string CompleteMe(this string input)
+            => Path.Combine(BaseDirectory, input);
+
         public static string DefaultName => nameof(PubgStatsTracker);
         public static string ServiceName => DefaultName + "Service";
         public static string BaseDirectory => CompletePaths.BaseDirectory;
@@ -19,12 +22,12 @@ namespace PubgStatsTracker
         public static class CompletePaths
         {
             public static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
-            public static string ExePath => Path.Combine(BaseDirectory, Files.ExeName);
-            public static string ConfigFile => Path.Combine(BaseDirectory, Files.Config);
-            public static string IpcFile => Path.Combine(BaseDirectory, Files.Ipc);
-            public static string LogDirectory => Path.Combine(BaseDirectory, "logs");
+            public static string ExePath => Files.ExeName.CompleteMe();
+            public static string ConfigFile => Files.Config.CompleteMe();
+            public static string IpcFile => Files.Ipc.CompleteMe();
+            public static string LogDirectory => "logs".CompleteMe();
             public static string DefaultLogFile => Path.Combine(LogDirectory, Files.Log);
-            public static string DatabaseFile => Path.Combine(BaseDirectory, Files.Database);
+            public static string DatabaseFile => Files.Database.CompleteMe();
         }
 
         public static class Files
@@ -40,6 +43,7 @@ namespace PubgStatsTracker
         
         public static class Ipc
         {
+            public static string LockFile => DefaultName + ".lock";
             public static string IpcFile => DefaultName + ".ipc";
             public static string IpcOpen => "open";
         }

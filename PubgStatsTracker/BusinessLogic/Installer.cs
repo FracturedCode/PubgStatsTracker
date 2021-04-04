@@ -67,13 +67,17 @@ namespace PubgStatsTracker
                 shortcut.Save();
             }
 
-            // create and start windows service
+
             if (!AppState.DoesServiceExist)
             {
-                ProcessStartInfo serviceCreator = new("sc.exe", $"create {Constants.ServiceName} start= delayed-auto displayName= \"{Constants.ServiceName}\" binpath= \"{installExe} -s\"");
-                Process.Start(serviceCreator);
-                ProcessStartInfo startService = new("sc.exe", $"start {Constants.ServiceName}");
-                Process.Start(startService);
+                IWshRuntimeLibrary.WshShell wsh = new();
+                string shortcutPath = AppState.LocalStartupFolder;
+                IWshRuntimeLibrary.IWshShortcut wshShortcut = wsh.CreateShortcut(Path.Combine(shortcutPath, Constants.DefaultName + ".lnk")) as IWshRuntimeLibrary.IWshShortcut;
+                wshShortcut.Arguments = "-s";
+                wshShortcut.TargetPath = installExe;
+                wshShortcut.WorkingDirectory = installModel.InstallLocation;
+                wshShortcut.IconLocation = "";
+                wshShortcut.Save();
             }
             
             while(!AppState.DoesServiceExist || !AppState.IsServiceRunning)

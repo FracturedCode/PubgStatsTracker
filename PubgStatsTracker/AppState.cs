@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text;
@@ -29,22 +30,28 @@ namespace PubgStatsTracker
             new WindowsPrincipal(WindowsIdentity.GetCurrent())
                 .IsInRole(WindowsBuiltInRole.Administrator);
         public static bool IsServiceRunning =>
-            DoesServiceExist && new ServiceController(Constants.ServiceName).Status == ServiceControllerStatus.Running;
+            IsFileLocked(Constants.Ipc.LockFile);
         public static string PubgReplayFolder
             => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"TslGame\Saved\Demos");
+        public static string LocalStartupFolder
+            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Startup");
         public static bool DoesServiceExist
+            => File.Exists(Path.Combine(LocalStartupFolder, $"{Constants.DefaultName}.lnk"));
+
+        public static bool IsFileLocked(string filePath)
         {
-            get
+            try
             {
-                try
-                {
-                    _ = new ServiceController(Constants.ServiceName).Status;
-                    return true;
-                } catch (InvalidOperationException)
-                {
-                    return false;
-                }
+                using (File.Open(filePath, FileMode.Open)){}
             }
+            catch (IOException e)
+            {
+                var errorCode = Marshal.GetHRForException(e) & ((1 << 16) - 1);
+
+                return errorCode == 32 || errorCode == 33;
+            }
+
+            return false;
         }
     }
 }

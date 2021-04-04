@@ -16,22 +16,14 @@ namespace PubgStatsTracker
     {
         private string replayFolder => AppState.PubgReplayFolder;
         private ILogger<Worker> logger { get; init; }
-        private FileSystemWatcher pubgReplayWatcher { get; set; }
-        private FileSystemWatcher ipcWatcher { get; set; }
+        private FileSystemWatcher pubgReplayWatcher { get; init; }
+        private FileSystemWatcher ipcWatcher { get; init; }
+        private FileStream lockFile { get; set; }
 
         public Worker(ILogger<Worker> logger)
         {
             this.logger = logger;
-        }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-        }
-
-        public override Task StartAsync(CancellationToken cancellationToken)
-        {
-            logger.LogInformation("Starting PubgStatsTracker service");
             if (!Directory.Exists(replayFolder))
             {
                 throw new FileNotFoundException("PUBG replay folder could not be found");
@@ -43,13 +35,26 @@ namespace PubgStatsTracker
                 InternalBufferSize = 4096
             };
             pubgReplayWatcher.Created += onNewReplay;
-            pubgReplayWatcher.EnableRaisingEvents = true;
 
             ipcWatcher = new FileSystemWatcher(Constants.BaseDirectory, Constants.Ipc.IpcFile)
             {
                 NotifyFilter = NotifyFilters.LastWrite
             };
             ipcWatcher.Changed += onIpc;
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            await Task.CompletedTask.ConfigureAwait(false);
+        }
+
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            logger.LogInformation("Starting PubgStatsTracker service");
+
+            lockFile = new FileStream(Constants.Ipc.LockFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+            pubgReplayWatcher.EnableRaisingEvents = true;
             ipcWatcher.EnableRaisingEvents = true;
             
 
@@ -61,6 +66,7 @@ namespace PubgStatsTracker
             logger.LogInformation("Stopping PubgStatsTracker service");
             pubgReplayWatcher.EnableRaisingEvents = false;
             ipcWatcher.EnableRaisingEvents = false;
+            lockFile.Close();
             await base.StopAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -69,6 +75,7 @@ namespace PubgStatsTracker
             logger.LogInformation("Disposing PubgStatsTracker service");
             pubgReplayWatcher.Dispose();
             ipcWatcher.Dispose();
+            lockFile.Dispose();
             base.Dispose();
         }
 
