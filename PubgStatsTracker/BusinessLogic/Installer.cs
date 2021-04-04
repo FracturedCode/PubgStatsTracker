@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using PubgStatsTracker.Models;
+using Serilog;
 
 namespace PubgStatsTracker
 {
@@ -25,18 +26,21 @@ namespace PubgStatsTracker
         {
             string installExe = Path.Combine(installModel.InstallLocation, Constants.Files.ExeName);
 
-            // Copy exe
-            File.Copy(
-                Constants.CompletePaths.ExePath,
-                installExe
-            );
-
+            if (!File.Exists(installExe))
+            {
+                // Copy exe
+                File.Copy(
+                    Constants.CompletePaths.ExePath,
+                    installExe
+                );
+            }
+            
             // Write user config
             new UserConfiguration().Save(installModel.InstallLocation);
 
             // Copy database
             File.WriteAllText(
-                Constants.CompletePaths.DatabaseFile,
+                Path.Combine(installModel.InstallLocation, Constants.Files.Database),
                 new StreamReader(
                     Assembly
                         .GetExecutingAssembly()
@@ -48,36 +52,20 @@ namespace PubgStatsTracker
             // Create desktop shortcut
             if (installModel.CreateDesktopShortcut)
             {
-                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), Constants.DefaultName + ".url");
-                using StreamWriter writer = new(shortcutPath);
-                writer.WriteLine("[InternetShortcut]");
-                writer.WriteLine("URL=file:///" + installExe);
-                writer.WriteLine("IconIndex=0");
-                writer.WriteLine("IconFile=" + installExe.Replace('\\', '/'));
+                createShortcut(Constants.CompletePaths.DesktopDirectory, installModel.InstallLocation);
             }
 
             // Create start menu shortcut
             if (installModel.CreateStartMenuShortcut)
             {
-                IWshRuntimeLibrary.WshShellClass shellClass = new();
-                string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), Constants.DefaultName + ".lnk");
-                IWshRuntimeLibrary.IWshShortcut shortcut = (IWshRuntimeLibrary.IWshShortcut)shellClass.CreateShortcut(shortcutPath);
-                shortcut.TargetPath = installExe;
-                shortcut.IconLocation = installExe.Replace('\\', '/');
-                shortcut.Save();
+                createShortcut(Constants.CompletePaths.ProgramsDirectory, installModel.InstallLocation);
             }
 
-
+            // Create service
             if (!AppState.DoesServiceExist)
             {
-                IWshRuntimeLibrary.WshShell wsh = new();
-                string shortcutPath = AppState.LocalStartupFolder;
-                IWshRuntimeLibrary.IWshShortcut wshShortcut = wsh.CreateShortcut(Path.Combine(shortcutPath, Constants.DefaultName + ".lnk")) as IWshRuntimeLibrary.IWshShortcut;
-                wshShortcut.Arguments = "-s";
-                wshShortcut.TargetPath = installExe;
-                wshShortcut.WorkingDirectory = installModel.InstallLocation;
-                wshShortcut.IconLocation = "";
-                wshShortcut.Save();
+                createShortcut(Constants.CompletePaths.StartupDirectory, installModel.InstallLocation, "-s");
+                Process.Start(new ProcessStartInfo() { FileName = installExe, Arguments = "-s" });
             }
             
             while(!AppState.DoesServiceExist || !AppState.IsServiceRunning)
@@ -92,31 +80,56 @@ namespace PubgStatsTracker
 
         public static void Uninstall(UninstallModel uninstallModel)
         {
-            string deleteLogsCmd = "rmdir /s logs";
-            string deleteConfigCmd = $"del {Constants.Files.Config}";
-            string deleteHistoryCmd = $""; //TODO
-            List<string> arguments = new(){ "/c ping localhost -n 3 > nul", $"cd {Constants.BaseDirectory}" };
-            if (uninstallModel.DeleteLogs)
-                arguments.Add(deleteLogsCmd);
-            if (uninstallModel.DeleteConfig)
-                arguments.Add(deleteConfigCmd);
-            //if (uninstallModel.DeleteMatchHistory)
-            // arguments.
-            // TODO shortcuts
-            // TODO service
-            arguments.Add($"del {Constants.DefaultName}.exe");
-            string concatdArguments = arguments.Aggregate((x, y) => $"{x} & {y}");
+            Log.Information($"Uninstalling {(uninstallModel.DeleteEverything ? "everything" : "the service and shortcuts")}");
 
-            ProcessStartInfo psi = new()
+            // Delete shortcuts if wanted
+            static void deleteShortcut(string directory)
             {
-                UseShellExecute = true,
-                Verb = "runas",
-                WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = "cmd.exe",
-                Arguments = concatdArguments
-            };
-            Process.Start(psi);
-            Application.Exit();
+                try
+                {
+                    File.Delete(Path.Combine(directory, Constants.Files.Shortcut));
+                }
+                catch { }
+            }
+            if (uninstallModel.DeleteShortcuts)
+            {
+                deleteShortcut(Constants.CompletePaths.ProgramsDirectory);
+                deleteShortcut(Constants.CompletePaths.DesktopDirectory);
+            }
+
+            // Delete service
+            deleteShortcut(Constants.CompletePaths.StartupDirectory);
+
+            // Delete everything if wanted
+            if (uninstallModel.DeleteEverything)
+            {
+                List<string> arguments = new()
+                {
+                    "/c ping localhost -n 3 > nul",
+                    $"cd {Constants.BaseDirectory[..Constants.BaseDirectory.LastIndexOf('\\')]}",
+                    $"rmdir /s {Constants.BaseDirectory[(Constants.BaseDirectory.LastIndexOf('\\') + 1)..]}"
+                };
+                ProcessStartInfo psi = new()
+                {
+                    UseShellExecute = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = "cmd.exe",
+                    Arguments = arguments.Aggregate((x, y) => $"{x} & {y}")
+                };
+                Process.Start(psi);
+                Application.Exit();
+            }
+        }
+
+        private static void createShortcut(string shortcutDirectory, string exeDirectory, string arguments = "")
+        {
+            IWshRuntimeLibrary.WshShell wsh = new();
+            IWshRuntimeLibrary.IWshShortcut wshShortcut = wsh.CreateShortcut(Path.Combine(shortcutDirectory, Constants.Files.Shortcut)) as IWshRuntimeLibrary.IWshShortcut;
+            wshShortcut.Arguments = arguments;
+            wshShortcut.TargetPath = Path.Combine(exeDirectory, Constants.Files.ExeName);
+            wshShortcut.WorkingDirectory = exeDirectory;
+            wshShortcut.IconLocation = ""; //TODO
+            wshShortcut.Save();
         }
     }
 }

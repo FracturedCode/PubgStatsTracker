@@ -49,7 +49,7 @@ namespace PubgStatsTracker.BusinessLogic
             var replayInfoModel = JsonSerializer.Deserialize<ReplayInfoModel>(replayInfo);
 
             using MatchHistoryContext db = new();
-            if (db.MatchHistory.Any(mh => mh.MatchGuid == replayInfoModel.MatchGuid))
+            if (!db.MatchHistory.Any(mh => mh.MatchGuid == replayInfoModel.MatchGuid))
             {
                 if (!db.Player.Any(p => p.PlayerGuid == replayInfoModel.PlayerGuid))
                 {

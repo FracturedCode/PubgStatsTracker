@@ -14,7 +14,7 @@ namespace PubgStatsTracker
 {
     public class Worker : BackgroundService
     {
-        private string replayFolder => AppState.PubgReplayFolder;
+        private string replayFolder => Constants.CompletePaths.PubgReplayDirectory;
         private ILogger<Worker> logger { get; init; }
         private FileSystemWatcher pubgReplayWatcher { get; init; }
         private FileSystemWatcher ipcWatcher { get; init; }

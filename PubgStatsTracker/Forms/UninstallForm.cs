@@ -19,9 +19,8 @@ namespace PubgStatsTracker
         {
             uninstallModel = new();
             InitializeComponent();
-            deleteLogsCheckbox.DataBindings.Add(nameof(CheckBox.Checked), uninstallModel, nameof(uninstallModel.DeleteLogs));
-            deleteConfigCheckbox.DataBindings.Add(nameof(CheckBox.Checked), uninstallModel, nameof(uninstallModel.DeleteConfig));
-            deleteHistoryCheckbox.DataBindings.Add(nameof(CheckBox.Checked), uninstallModel, nameof(uninstallModel.DeleteMatchHistory));
+            deleteEverythingCheckbox.DataBindings.Add(nameof(CheckBox.Checked), uninstallModel, nameof(uninstallModel.DeleteEverything));
+            deleteShortcutsCheckbox.DataBindings.Add(nameof(CheckBox.Checked), uninstallModel, nameof(uninstallModel.DeleteShortcuts));
         }
 
         private void uninstallButton_Click(object sender, EventArgs e)

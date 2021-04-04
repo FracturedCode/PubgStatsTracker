@@ -43,6 +43,7 @@ namespace PubgStatsTracker
 
             options.Parse(args);
 
+            Directory.SetCurrentDirectory(Constants.BaseDirectory);
 
             const string loggerTemplate = @"{Timestamp:yyyy-MM-dd HH:mm:ss} [{SourceContext:1}] {Message:lj}{NewLine}{Exception}";
             Log.Logger = new LoggerConfiguration()

@@ -29,29 +29,27 @@ namespace PubgStatsTracker
         public static bool IsElevated =>
             new WindowsPrincipal(WindowsIdentity.GetCurrent())
                 .IsInRole(WindowsBuiltInRole.Administrator);
-        public static bool IsServiceRunning =>
-            IsFileLocked(Constants.Ipc.LockFile);
-        public static string PubgReplayFolder
-            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"TslGame\Saved\Demos");
-        public static string LocalStartupFolder
-            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Start Menu\Programs\Startup");
-        public static bool DoesServiceExist
-            => File.Exists(Path.Combine(LocalStartupFolder, $"{Constants.DefaultName}.lnk"));
-
-        public static bool IsFileLocked(string filePath)
+        public static bool IsServiceRunning
         {
-            try
+            get
             {
-                using (File.Open(filePath, FileMode.Open)){}
-            }
-            catch (IOException e)
-            {
-                var errorCode = Marshal.GetHRForException(e) & ((1 << 16) - 1);
+                try
+                {
+                    using var x = File.Open(Constants.Ipc.LockFile, FileMode.Open);
+                }
+                catch (IOException e)
+                {
+                    var errorCode = Marshal.GetHRForException(e) & ((1 << 16) - 1);
 
-                return errorCode == 32 || errorCode == 33;
-            }
+                    return errorCode == 32 || errorCode == 33;
+                }
 
-            return false;
+                return false;
+            }
+            
         }
+        
+        public static bool DoesServiceExist
+            => File.Exists(Path.Combine(Constants.CompletePaths.StartupDirectory, Constants.Files.Shortcut));
     }
 }

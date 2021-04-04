@@ -28,10 +28,16 @@ namespace PubgStatsTracker
             public static string LogDirectory => "logs".CompleteMe();
             public static string DefaultLogFile => Path.Combine(LogDirectory, Files.Log);
             public static string DatabaseFile => Files.Database.CompleteMe();
+            public static string ProgramsDirectory => Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+            public static string StartupDirectory => Path.Combine(ProgramsDirectory, "Startup");
+            public static string PubgReplayDirectory
+                => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"TslGame\Saved\Demos");
+            public static string DesktopDirectory => Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         }
 
         public static class Files
         {
+            public static string Shortcut => $"{DefaultName}.lnk";
             public static string ReplayInfo => "PUBG.replayinfo";
             public static string Database => "MatchHistory.db";
             public static string Log => DefaultName + ".log";

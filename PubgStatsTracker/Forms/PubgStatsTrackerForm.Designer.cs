@@ -29,17 +29,26 @@ namespace PubgStatsTracker
         /// </summary>
         private void InitializeComponent()
         {
-            this.installButton = new System.Windows.Forms.Button();
+            this.installButton = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // installButton
             // 
-            this.installButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.installButton.Location = new System.Drawing.Point(677, 415);
+            this.installButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.installButton.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.installButton.Depth = 0;
+            this.installButton.DrawShadows = true;
+            this.installButton.HighEmphasis = true;
+            this.installButton.Icon = null;
+            this.installButton.Location = new System.Drawing.Point(635, 405);
+            this.installButton.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.installButton.MouseState = MaterialSkin.MouseState.HOVER;
             this.installButton.Name = "installButton";
-            this.installButton.Size = new System.Drawing.Size(111, 23);
-            this.installButton.TabIndex = 1;
-            this.installButton.Text = "button1";
+            this.installButton.Size = new System.Drawing.Size(158, 36);
+            this.installButton.TabIndex = 0;
+            this.installButton.Text = "materialButton1";
+            this.installButton.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.installButton.UseAccentColor = false;
             this.installButton.UseVisualStyleBackColor = true;
             this.installButton.Click += new System.EventHandler(this.installButton_Click);
             // 
@@ -52,11 +61,13 @@ namespace PubgStatsTracker
             this.Name = "PubgStatsTrackerForm";
             this.Text = "PubgStatsTracker";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
-        private System.Windows.Forms.Button installButton;
+
+        private MaterialSkin.Controls.MaterialButton installButton;
     }
 }
 
