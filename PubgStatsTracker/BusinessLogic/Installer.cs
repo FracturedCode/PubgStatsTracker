@@ -125,11 +125,12 @@ namespace PubgStatsTracker
 
         private static void createShortcut(string shortcutDirectory, string exeDirectory, string arguments = "")
         {
+            string exePath = Path.Combine(exeDirectory, Constants.Files.ExeName);
             IShellLink link = (IShellLink)new ShellLink();
             link.SetArguments(arguments);
-            link.SetPath(exeDirectory);
-            link.SetWorkingDirectory(Path.Combine(exeDirectory, Constants.Files.ExeName));
-            //link.SetIconLocation("", 0);//TODO
+            link.SetPath(exePath);
+            link.SetWorkingDirectory(exeDirectory);
+            link.SetIconLocation(exePath, 0);
             IPersistFile file = (IPersistFile)link;
             file.Save(Path.Combine(shortcutDirectory, Constants.Files.Shortcut), false);
         }
