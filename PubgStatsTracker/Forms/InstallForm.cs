@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using IWshRuntimeLibrary;
 using MaterialSkin.Controls;
 using PubgStatsTracker.Models;
 

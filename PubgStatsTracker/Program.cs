@@ -92,7 +92,6 @@ namespace PubgStatsTracker
 
         private static void startService() =>
             Host.CreateDefaultBuilder()
-                .UseWindowsService()
                 .ConfigureServices((_, services) =>
                 {
                     services.AddHostedService<Worker>();
