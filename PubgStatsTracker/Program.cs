@@ -33,7 +33,6 @@ namespace PubgStatsTracker
         [STAThread]
         static void Main(string[] args)
         {
-
             bool runService = false;
 
             var options = new OptionSet

@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PubgStatsTracker.BusinessLogic;
+using PubgStatsTracker.Models.Replay;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -52,7 +54,11 @@ namespace PubgStatsTracker
         {
             logger.LogInformation("Starting PubgStatsTracker service");
 
-            lockFile = new FileStream(Constants.Ipc.LockFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            if (!File.Exists(Constants.CompletePaths.IpcLockFile))
+            {
+                using var x = File.Create(Constants.CompletePaths.IpcLockFile);
+            }
+            lockFile = new FileStream(Constants.CompletePaths.IpcLockFile, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
 
             pubgReplayWatcher.EnableRaisingEvents = true;
             ipcWatcher.EnableRaisingEvents = true;
@@ -81,10 +87,26 @@ namespace PubgStatsTracker
 
         private void onNewReplay(object sender, FileSystemEventArgs e)
         {
+            const string corruptedMsg = "Corrupted replay file";
             if (e.ChangeType == WatcherChangeTypes.Created)
-                DataManager.AddIfNewReplay(e.FullPath[..e.FullPath.LastIndexOf('\\')]);
+            {
+                ReplayInfoModel replayInfoModel;
+                try
+                {
+                    string replayInfo = File.ReadAllText(Path.Combine(e.FullPath[..e.FullPath.LastIndexOf('\\')], Constants.Files.ReplayInfo));
+                    replayInfo = replayInfo[replayInfo.IndexOf('{')..(replayInfo.LastIndexOf('}') + 1)];
+                    replayInfoModel = JsonSerializer.Deserialize<ReplayInfoModel>(replayInfo);
+                } catch (Exception ex)
+                {
+                    logger.LogWarning(ex, corruptedMsg);
+                    return;
+                }
+                DataManager.AddIfNewReplay(replayInfoModel);
+            }
             else
+            {
                 throw new Exception(Constants.DefaultExceptionMessage);
+            }
         }
 
         private void onIpc(object sender, FileSystemEventArgs e)

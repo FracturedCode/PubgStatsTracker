@@ -35,7 +35,7 @@ namespace PubgStatsTracker
             {
                 try
                 {
-                    using var x = File.Open(Constants.Ipc.LockFile, FileMode.Open);
+                    using var x = File.Open(Constants.CompletePaths.IpcLockFile, FileMode.Open);
                 }
                 catch (IOException e)
                 {

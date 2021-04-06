@@ -13,6 +13,7 @@ namespace PubgStatsTracker.Models.Database
     [Table("MatchHistory")]
     public class MatchHistoryModel
     {
+        [Key]
         public Guid MatchGuid { get; set; }
         public Guid PlayerGuid { get; set; }
         public int ModeId { get; set; }
@@ -21,6 +22,8 @@ namespace PubgStatsTracker.Models.Database
 
         public ModeModel Mode { get; set; }
         public MapModel Map { get; set; }
+        [ForeignKey("PlayerGuid")]
+        public PlayerModel Player { get; set; }
 
         public static MatchHistoryModel FromReplayInfo(ReplayInfoModel rim)
         {

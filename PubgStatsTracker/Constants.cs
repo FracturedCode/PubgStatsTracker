@@ -21,8 +21,8 @@ namespace PubgStatsTracker
         // Thus, BaseDirectory is needed to distignuish between the executable location and system32
         public static class CompletePaths
         {
-            public static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
-            public static string ExePath => Files.ExeName.CompleteMe();
+            public static string BaseDirectory => ExePath[..ExePath.LastIndexOf('\\')];
+            public static string ExePath => Environment.GetCommandLineArgs()[0];
             public static string ConfigFile => Files.Config.CompleteMe();
             public static string IpcFile => Files.Ipc.CompleteMe();
             public static string LogDirectory => "logs".CompleteMe();
@@ -32,6 +32,7 @@ namespace PubgStatsTracker
             public static string StartupDirectory => Path.Combine(ProgramsDirectory, "Startup");
             public static string PubgReplayDirectory
                 => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"TslGame\Saved\Demos");
+            public static string IpcLockFile => Ipc.LockFile.CompleteMe();
             public static string DesktopDirectory => Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         }
 
@@ -43,7 +44,7 @@ namespace PubgStatsTracker
             public static string Log => DefaultName + ".log";
             public static string Ipc => Constants.Ipc.IpcFile;
             public static string Config => DefaultName + "Config.json";
-            public static string ExeName => AppDomain.CurrentDomain.FriendlyName;
+            public static string ExeName => CompletePaths.ExePath[(CompletePaths.ExePath.LastIndexOf('\\')+1)..];
             public static string DefaultDatabaseEmbedded => DefaultName + ".Resources.MatchHistoryDefault.db";
         }
         

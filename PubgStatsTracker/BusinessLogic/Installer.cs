@@ -28,6 +28,8 @@ namespace PubgStatsTracker
         {
             string installExe = Path.Combine(installModel.InstallLocation, Constants.Files.ExeName);
 
+            Directory.CreateDirectory(installModel.InstallLocation);
+
             if (!File.Exists(installExe))
             {
                 // Copy exe
@@ -41,15 +43,18 @@ namespace PubgStatsTracker
             new UserConfiguration().Save(installModel.InstallLocation);
 
             // Copy database
-            File.WriteAllText(
-                Path.Combine(installModel.InstallLocation, Constants.Files.Database),
-                new StreamReader(
-                    Assembly
-                        .GetExecutingAssembly()
-                        .GetManifestResourceStream(Constants.Files.DefaultDatabaseEmbedded)
-                )
-                .ReadToEnd()
-            );
+            // File.WriteAllText corrupts the db
+
+            Stream defaultDatabaseStream = Assembly
+                .GetExecutingAssembly()
+                .GetManifestResourceStream(Constants.Files.DefaultDatabaseEmbedded);
+
+            using (FileStream fs = new(Path.Combine(installModel.InstallLocation, Constants.Files.Database), FileMode.Create, FileAccess.Write))
+            {
+                byte[] a = new byte[defaultDatabaseStream.Length];
+                defaultDatabaseStream.Read(a, 0, Convert.ToInt32(defaultDatabaseStream.Length));
+                fs.Write(a, 0, Convert.ToInt32(defaultDatabaseStream.Length));
+            }
 
             // Create desktop shortcut
             if (installModel.CreateDesktopShortcut)
@@ -67,10 +72,27 @@ namespace PubgStatsTracker
             if (!AppState.DoesServiceExist)
             {
                 createShortcut(Constants.CompletePaths.StartupDirectory, installModel.InstallLocation, "-s");
-                Process.Start(new ProcessStartInfo() { FileName = installExe, Arguments = "-s" });
             }
+
+            Process.Start(new ProcessStartInfo() { FileName = installExe, Arguments = "-s" });
             
-            while(!AppState.DoesServiceExist || !AppState.IsServiceRunning)
+            bool isServiceRunning()
+            {
+                try
+                {
+                    using var x = File.Open(Path.Combine(installModel.InstallLocation, Constants.Ipc.LockFile), FileMode.Open);
+                }
+                catch (IOException e)
+                {
+                    var errorCode = Marshal.GetHRForException(e) & ((1 << 16) - 1);
+
+                    return errorCode == 32 || errorCode == 33;
+                }
+
+                return false;
+            }
+
+            while(!AppState.DoesServiceExist || isServiceRunning())
             {
                 Thread.Sleep(100);
             }
@@ -119,8 +141,9 @@ namespace PubgStatsTracker
                     Arguments = arguments.Aggregate((x, y) => $"{x} & {y}")
                 };
                 Process.Start(psi);
-                Application.Exit();
             }
+
+            Application.Exit();
         }
 
         private static void createShortcut(string shortcutDirectory, string exeDirectory, string arguments = "")

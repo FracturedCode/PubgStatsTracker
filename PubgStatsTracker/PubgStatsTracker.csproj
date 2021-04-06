@@ -9,6 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\MatchHistoryDefault.db" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\MatchHistoryDefault.db" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MaterialSkin.2" Version="2.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
