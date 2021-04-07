@@ -121,7 +121,7 @@ namespace PubgStatsTracker
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new PubgStatsTrackerForm());
             }
-            catch (Exception e)
+            catch (Exception e)//TODO the exception is just null
             {
                 string fancyExceptionMessage = exceptionLocationInfo(e);
                 MessageBox.Show(fancyExceptionMessage);

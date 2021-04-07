@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PubgStatsTracker.BusinessLogic;
+using PubgStatsTracker.Models.Database;
 using PubgStatsTracker.Models.Replay;
 using System;
 using System.Collections.Generic;
@@ -101,7 +102,7 @@ namespace PubgStatsTracker
                     logger.LogWarning(ex, corruptedMsg);
                     return;
                 }
-                DataManager.AddIfNewReplay(replayInfoModel);
+                MatchHistoryModel.AddIfNewReplay(replayInfoModel);
             }
             else
             {

@@ -1,4 +1,5 @@
-﻿using PubgStatsTracker.BusinessLogic;
+﻿using Microsoft.EntityFrameworkCore;
+using PubgStatsTracker.BusinessLogic;
 using PubgStatsTracker.Models.Replay;
 using System;
 using System.Collections.Generic;
@@ -40,6 +41,27 @@ namespace PubgStatsTracker.Models.Database
                 DateTimePlayed = rim.DateTimePlayed
             };
         }
-            
+        
+        public static void AddIfNewReplay(ReplayInfoModel replayInfoModel)
+        {
+            using MatchHistoryContext db = new();
+            if (!db.MatchHistory.Any(mh => mh.MatchGuid == replayInfoModel.MatchGuid))
+            {
+                var mh = FromReplayInfo(replayInfoModel);
+                if (!db.Player.Any(p => p.PlayerGuid == replayInfoModel.PlayerGuid))
+                {
+                    mh.Player = new()
+                    {
+                        PlayerGuid = replayInfoModel.PlayerGuid,
+                        PlayerNick = replayInfoModel.RecordUserNickName
+                    };
+                }
+                db.MatchHistory.Add(mh);
+                db.SaveChanges();
+            }
+        }
+
+        public static List<MatchHistoryModel> GetAllHistory()
+            => new MatchHistoryContext().MatchHistory.Include(mh => mh.Map).ToList();
     }
 }
