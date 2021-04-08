@@ -1,8 +1,7 @@
 {
   "profiles": {
     "PubgStatsTracker": {
-      "commandName": "Project",
-      "commandLineArgs": "-s"
+      "commandName": "Project"
     }
   }
 }
