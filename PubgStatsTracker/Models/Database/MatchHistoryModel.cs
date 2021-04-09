@@ -47,7 +47,7 @@ namespace PubgStatsTracker.Models.Database
             using MatchHistoryContext db = new();
             if (!db.MatchHistory.Any(mh => mh.MatchGuid == replayInfoModel.MatchGuid))
             {
-                var mh = FromReplayInfo(replayInfoModel);
+                MatchHistoryModel mh = FromReplayInfo(replayInfoModel);
                 if (!db.Player.Any(p => p.PlayerGuid == replayInfoModel.PlayerGuid))
                 {
                     mh.Player = new()

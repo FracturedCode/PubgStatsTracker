@@ -59,7 +59,7 @@ namespace PubgStatsTracker
                 series.XValueType = ChartValueType.DateTime;
             });
             chart.Visible = true;
-            chart.Size = new Size(600, 300);
+            chart.Size = new Size(800,500);
             chart.TabIndex = 0;
             chart.Location = new Point(0, 70);
             Axis x = chart.ChartAreas[chartArea].AxisX;
